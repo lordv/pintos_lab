@@ -1,0 +1,68 @@
+Script started on Sunday 29 August 2010 11:15:10 PM IST
+squish-pty bochs -q
+00000000000i[     ] LTDL_LIBRARY_PATH not set. using compile time default '/usr/lib/bochs/plugins'
+00000000000i[     ] BXSHARE not set. using compile time default '/usr/share/bochs'
+00000000000i[     ] reading configuration from bochsrc.txt
+00000000000e[     ] user_shortcut: old-style syntax detected
+00000000000i[     ] lt_dlhandle is 0x9e19a88
+00000000000i[PLGIN] loaded plugin libbx_x.la
+00000000000i[     ] installing x module as the Bochs GUI
+00000000000i[     ] using log file bochsout.txt
+========================================================================
+                       Bochs x86 Emulator 2.4.1
+                Build from CVS snapshot on June 7, 2009
+========================================================================
+PiLo hda1
+Loading.........
+Kernel command line: run alarm-multiple
+Pintos booting with 4,096 kB RAM...
+383 pages available in kernel pool.
+383 pages available in user pool.
+Calibrating timer...  204,600 loops/s.
+Boot complete.
+Executing 'alarm-multiple':
+(alarm-multiple) begin
+(alarm-multiple) Creating 5 threads to sleep 7 times each.
+(alarm-multiple) Thread 0 sleeps 10 ticks each time,
+(alarm-multiple) thread 1 sleeps 20 ticks each time, and so on.
+(alarm-multiple) If successful, product of iteration count and
+(alarm-multiple) sleep duration will appear in nondescending order.
+(alarm-multiple) thread 0: duration=10, iteration=1, product=10
+(alarm-multiple) thread 1: duration=20, iteration=1, product=20
+(alarm-multiple) thread 0: duration=10, iteration=2, product=20
+(alarm-multiple) thread 2: duration=30, iteration=1, product=30
+(alarm-multiple) thread 0: duration=10, iteration=3, product=30
+(alarm-multiple) thread 3: duration=40, iteration=1, product=40
+(alarm-multiple) thread 1: duration=20, iteration=2, product=40
+(alarm-multiple) thread 0: duration=10, iteration=4, product=40
+(alarm-multiple) thread 4: duration=50, iteration=1, product=50
+(alarm-multiple) thread 0: duration=10, iteration=5, product=50
+(alarm-multiple) thread 2: duration=30, iteration=2, product=60
+(alarm-multiple) thread 1: duration=20, iteration=3, product=60
+(alarm-multiple) thread 0: duration=10, iteration=6, product=60
+(alarm-multiple) thread 0: duration=10, iteration=7, product=70
+(alarm-multiple) thread 3: duration=40, iteration=2, product=80
+(alarm-multiple) thread 1: duration=20, iteration=4, product=80
+(alarm-multiple) thread 2: duration=30, iteration=3, product=90
+(alarm-multiple) thread 4: duration=50, iteration=2, product=100
+(alarm-multiple) thread 1: duration=20, iteration=5, product=100
+(alarm-multiple) thread 3: duration=40, iteration=3, product=120
+(alarm-multiple) thread 2: duration=30, iteration=4, product=120
+(alarm-multiple) thread 1: duration=20, iteration=6, product=120
+(alarm-multiple) thread 1: duration=20, iteration=7, product=140
+(alarm-multiple) thread 4: duration=50, iteration=3, product=150
+(alarm-multiple) thread 2: duration=30, iteration=5, product=150
+(alarm-multiple) thread 3: duration=40, iteration=4, product=160
+(alarm-multiple) thread 2: duration=30, iteration=6, product=180
+(alarm-multiple) thread 4: duration=50, iteration=4, product=200
+(alarm-multiple) thread 3: duration=40, iteration=5, product=200
+(alarm-multiple) thread 2: duration=30, iteration=7, product=210
+(alarm-multiple) thread 3: duration=40, iteration=6, product=240
+(alarm-multiple) thread 4: duration=50, iteration=5, product=250
+(alarm-multiple) thread 3: duration=40, iteration=7, product=280
+(alarm-multiple) thread 4: duration=50, iteration=6, product=300
+(alarm-multiple) thread 4: duration=50, iteration=7, product=350
+(alarm-multiple) end
+Execution of 'alarm-multiple' complete.
+
+Script done on Sunday 29 August 2010 11:15:14 PM IST
