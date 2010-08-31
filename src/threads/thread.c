@@ -302,17 +302,20 @@ thread_tid (void)
 	void
 thread_wait (int64_t ticks)
 {
-	struct thread * cur = thread_current();
-	enum intr_level old_level;
+	if(ticks > 0)
+	{	
+		struct thread * cur = thread_current();
+		enum intr_level old_level;
 
-	ASSERT(!intr_context());
+		ASSERT(!intr_context());
 
-	
-	old_level = intr_disable();
-	cur->alarm_wait = ticks + timer_ticks();
-	list_push_back(&alarm_list, &cur->alarm_elem);
-	thread_block();
-	intr_set_level(old_level);
+
+		old_level = intr_disable();
+		cur->alarm_wait = ticks + timer_ticks();
+		list_push_back(&alarm_list, &cur->alarm_elem);
+		thread_block();
+		intr_set_level(old_level);
+	}
 }
 
 /* alarm handler: Removes threads whose alarms are triggered and puts them back in ready_list */
