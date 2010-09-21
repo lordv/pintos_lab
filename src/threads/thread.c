@@ -79,6 +79,8 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -224,6 +226,11 @@ thread_create (const char *name, int priority,
 	/* Add to run queue. */
 	thread_unblock (t);
 
+	/* User */
+	if(priority > thread_current()->priority)
+		thread_insert_ready(thread_current());
+	/* ---User */
+
 	return tid;
 }
 
@@ -260,9 +267,16 @@ thread_unblock (struct thread *t)
 
 	old_level = intr_disable ();
 	ASSERT (t->status == THREAD_BLOCKED);
-	list_push_back (&ready_list, &t->elem);
+	
+	/*old: list_push_back (&ready_list, &t->elem);*/
+	/* User */
+	list_insert_ordered(&ready_list, &t->elem, thread_compare_priority, NULL);
+	/* ---User */
+	
 	t->status = THREAD_READY;
+
 	intr_set_level (old_level);
+	
 }
 
 /* Returns the name of the running thread. */
@@ -298,6 +312,7 @@ thread_tid (void)
 	return thread_current ()->tid;
 }
 
+/* User */
 /*Blocks the calling thread and puts it into the alarm list  */
 	void
 thread_wait (int64_t ticks)
@@ -330,10 +345,10 @@ alarm_handler(void)
 
 	for(e = list_begin(&alarm_list);e != list_end(&alarm_list);e = list_next(e))
 	{
-	 	tem = list_entry(e, struct thread, alarm_elem);
+		tem = list_entry(e, struct thread, alarm_elem);
 		if(tem->alarm_wait == timer_ticks())
 		{
-			
+
 			tem->alarm_wait = 0;
 			thread_unblock(tem);
 			list_remove(e);
@@ -343,6 +358,7 @@ alarm_handler(void)
 	intr_set_level(old_level);
 }
 
+/* ---User*/
 
 /* Deschedules the current thread and destroys it.  Never
    returns to the caller. */
@@ -377,11 +393,29 @@ thread_yield (void)
 
 	old_level = intr_disable ();
 	if (cur != idle_thread) 
-		list_push_back (&ready_list, &cur->elem);
+		/* User */
+		list_insert_ordered(&ready_list, &cur->elem, thread_compare_priority, NULL);
+		/* ---User */
 	cur->status = THREAD_READY;
 	schedule ();
 	intr_set_level (old_level);
 }
+/* User */
+	void
+thread_insert_ready (struct thread * cur) 
+{
+	enum intr_level old_level;
+
+	ASSERT (!intr_context ());
+
+	old_level = intr_disable ();
+	if (cur != idle_thread) 
+		list_insert_ordered(&ready_list, &cur->elem, thread_compare_priority, NULL);
+	cur->status = THREAD_READY;
+	schedule ();
+	intr_set_level (old_level);
+}
+/* ---User */
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
@@ -404,8 +438,40 @@ thread_foreach (thread_action_func *func, void *aux)
 	void
 thread_set_priority (int new_priority) 
 {
-	thread_current ()->priority = new_priority;
+	/* User */
+	thread_set_priority_new(thread_current(), new_priority, true);
+	/* ---User */
 }
+
+/* User */
+void thread_set_priority_new(struct thread * cur, int new_priority, int flag)
+{
+	if(cur->donated)
+	{
+		if(flag == true)
+		{
+			if(cur->priority > new_priority)
+				cur->init_priority = new_priority;
+			else
+				cur->priority = cur->init_priority = new_priority;
+		}
+		else
+		{
+			cur->priority = new_priority;
+		}
+	}
+	else
+		cur->init_priority = cur->priority = new_priority;
+
+	if(cur->status == THREAD_READY)
+	{
+		list_remove(&cur->elem);
+		list_insert_ordered(&ready_list, &cur->elem, thread_compare_priority, NULL);
+	}
+	if(cur->status == THREAD_RUNNING && list_entry(list_begin(&ready_list), struct thread, elem)->priority > new_priority)
+		thread_insert_ready(cur);
+}
+/* ---User */
 
 /* Returns the current thread's priority. */
 	int
@@ -526,9 +592,16 @@ init_thread (struct thread *t, const char *name, int priority)
 
 	memset (t, 0, sizeof *t);
 	t->status = THREAD_BLOCKED;
+	/* User */
+	list_init(&t->locks_list);
+	t->donated = false;
+	t->waiting = NULL;
+	/* ---User */
 	strlcpy (t->name, name, sizeof t->name);
 	t->stack = (uint8_t *) t + PGSIZE;
-	t->priority = priority;
+	/* User */
+	t->init_priority = t->priority = priority;
+	/* ---User */
 	t->alarm_wait = 0;
 	t->magic = THREAD_MAGIC;
 	list_push_back (&all_list, &t->allelem);
@@ -590,7 +663,7 @@ thread_schedule_tail (struct thread *prev)
 	/* Start new time slice. */
 	thread_ticks = 0;
 
-	
+
 #ifdef USERPROG
 	/* Activate the new address space. */
 	process_activate ();
@@ -644,7 +717,41 @@ allocate_tid (void)
 
 	return tid;
 }
-
+
+/* User */
+
+bool thread_compare_priority(const struct list_elem *thr1_elem, const struct list_elem *thr2_elem, void * arg)
+{
+	struct thread *thr1, *thr2;
+
+	ASSERT(thr1_elem != NULL && thr2_elem != NULL);
+
+	thr1 = list_entry(thr1_elem, struct thread, elem);
+	thr2 = list_entry(thr2_elem, struct thread, elem);
+
+	return (thr1->priority > thr2->priority);
+}
+
+bool thread_compare_priority_neg(const struct list_elem *thr1_elem, const struct list_elem *thr2_elem, void * arg)
+{
+	struct thread *thr1, *thr2;
+
+	ASSERT(thr1_elem != NULL && thr2_elem != NULL);
+
+	thr1 = list_entry(thr1_elem, struct thread, elem);
+	thr2 = list_entry(thr2_elem, struct thread, elem);
+
+	return (thr1->priority < thr2->priority);
+}
+
+void thread_sort_list(struct list * l)
+{
+	if(list_empty(l))
+		return;
+	list_sort(l, thread_compare_priority, NULL);
+}
+/* ---User */
+
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
